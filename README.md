@@ -32,7 +32,7 @@ The Catanalyzer uses a sophisticated scoring algorithm that evaluates each possi
 1. Clone or download the project files
 2. Navigate to the project directory:
    ```bash
-   cd Catan
+   cd "...\catanalyzer-main"
    ```
 
 3. Install dependencies:
