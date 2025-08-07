@@ -65,35 +65,6 @@ The built files will be in the `dist` folder, ready for deployment.
 4. **Analyze**: Click "Analyze Board" to find optimal settlement locations
 5. **View results**: The best spot is automatically selected and highlighted in blue
 
-## Deployment
-
-### Netlify (Recommended)
-
-1. Push your code to a GitHub repository
-2. Connect your repository to Netlify
-3. Set build command: `npm run build`
-4. Set publish directory: `dist`
-5. Deploy!
-
-### Vercel
-
-1. Install Vercel CLI: `npm i -g vercel`
-2. Run `vercel` in your project directory
-3. Follow the prompts
-
-### GitHub Pages
-
-1. Add to package.json:
-   ```json
-   "homepage": "https://yourusername.github.io/repository-name",
-   "scripts": {
-     "predeploy": "npm run build",
-     "deploy": "gh-pages -d dist"
-   }
-   ```
-2. Install gh-pages: `npm install --save-dev gh-pages`
-3. Deploy: `npm run deploy`
-
 ## Technical Details
 
 - **Framework**: React 18 with Vite
