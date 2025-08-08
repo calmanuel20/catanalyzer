@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { HexGrid, Layout, Hexagon } from "react-hexgrid";
 
 // Constants
@@ -46,7 +46,22 @@ const generateBoard = (radius = 2) => {
 
 const getResourceColor = (resource) => RESOURCE_COLORS[resource] || RESOURCE_COLORS.none;
 
-
+// Mobile detection
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  return isMobile;
+};
 
 // Button styles
 const buttonStyles = {
@@ -83,6 +98,25 @@ function App() {
   const [analysisResults, setAnalysisResults] = useState([]);
   const [selectedSettlement, setSelectedSettlement] = useState(null);
   const [showAlgorithmInfo, setShowAlgorithmInfo] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Responsive dimensions
+  const gridDimensions = useMemo(() => {
+    if (isMobile) {
+      return {
+        width: Math.min(window.innerWidth - 40, 400),
+        height: Math.min(window.innerHeight * 0.6, 500),
+        size: { x: 5, y: 5 },
+        spacing: 1.0
+      };
+    }
+    return {
+      width: 1000,
+      height: 800,
+      size: { x: 7, y: 7 },
+      spacing: 1.15
+    };
+  }, [isMobile]);
 
   // Memoized handlers
   const handleHexClick = useCallback((q, r) => {
@@ -309,31 +343,40 @@ function App() {
   }, [selectedSettlement]);
 
   const handleMouseEnter = useCallback((e) => {
-    if (selectedResource) {
+    if (selectedResource && !isMobile) {
       e.target.style.opacity = "0.9";
       e.target.style.filter = "drop-shadow(0 8px 16px rgba(0, 0, 0, 0.7)) brightness(1.3)";
     }
-  }, [selectedResource]);
+  }, [selectedResource, isMobile]);
 
   const handleMouseLeave = useCallback((e, hexResource) => {
-    if (selectedResource) {
+    if (selectedResource && !isMobile) {
       e.target.style.opacity = "1";
       e.target.style.filter = hexResource === selectedResource 
         ? "drop-shadow(0 3px 6px rgba(255, 107, 53, 0.3))"
         : "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))";
     }
-  }, [selectedResource]);
+  }, [selectedResource, isMobile]);
 
   return (
     <div className="hex-grid-container" style={{ cursor: getCursorStyle() }}>
-      <h1 className="text-3xl font-bold text-center text-gray-800" style={{ margin: "0 0 16px 0" }}>
+      <h1 className="text-3xl font-bold text-center text-gray-800" style={{ 
+        margin: "0 0 16px 0",
+        fontSize: isMobile ? "24px" : "32px"
+      }}>
         Catanalyzer
       </h1>
-      <h2 className="text-xl text-center text-gray-600" style={{ margin: "0 0 16px 0" }}>
+      <h2 className="text-xl text-center text-gray-600" style={{ 
+        margin: "0 0 16px 0",
+        fontSize: isMobile ? "16px" : "20px"
+      }}>
         Catan Settlement Optimizer
       </h2>
       
-      <div className="instructions" style={{ marginBottom: "40px" }}>
+      <div className="instructions" style={{ 
+        marginBottom: isMobile ? "20px" : "40px",
+        fontSize: isMobile ? "12px" : "14px"
+      }}>
         <p>Click on hexagons to set their number token. Set resource layout by using the bottom panel.</p>
         <p>Select and view optimal settlement locations from the analysis results.</p>
         <p> For additional information on the analysis, see our&nbsp;
@@ -355,9 +398,28 @@ function App() {
         </p>
       </div>
       
-      <div className="controls" style={{ marginBottom: "8px" }}>
-        <button onClick={randomizeBoard}>Randomize</button>
-        <button onClick={clearBoard}> Clear All </button>
+      <div className="controls" style={{ 
+        marginBottom: "8px",
+        gap: isMobile ? "8px" : "10px"
+      }}>
+        <button 
+          onClick={randomizeBoard}
+          style={{
+            padding: isMobile ? "10px 16px" : "12px 24px",
+            fontSize: isMobile ? "12px" : "14px"
+          }}
+        >
+          Randomize
+        </button>
+        <button 
+          onClick={clearBoard}
+          style={{
+            padding: isMobile ? "10px 16px" : "12px 24px",
+            fontSize: isMobile ? "12px" : "14px"
+          }}
+        > 
+          Clear All 
+        </button>
       </div>
 
       {/* Analyze Board Button */}
@@ -365,15 +427,19 @@ function App() {
         <button
           onClick={handleAnalyzeClick}
           disabled={!isBoardFilled}
-          style={buttonStyles.analyze(isBoardFilled)}
+          style={{
+            ...buttonStyles.analyze(isBoardFilled),
+            padding: isMobile ? "12px 24px" : "15px 30px",
+            fontSize: isMobile ? "14px" : "16px"
+          }}
           onMouseEnter={(e) => {
-            if (isBoardFilled) {
+            if (isBoardFilled && !isMobile) {
               e.target.style.transform = 'translateY(-2px)';
               e.target.style.boxShadow = '0 6px 20px rgba(76, 175, 80, 0.4)';
             }
           }}
           onMouseLeave={(e) => {
-            if (isBoardFilled) {
+            if (isBoardFilled && !isMobile) {
               e.target.style.transform = 'translateY(0)';
               e.target.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.3)';
             }
@@ -385,23 +451,39 @@ function App() {
 
       {/* Analysis Results */}
       {analysisResults.length > 0 && (
-        <div className="analysis-results">
-          <h3>Top Settlements</h3>
-          <div className="results-container">
+        <div className="analysis-results" style={{
+          maxWidth: isMobile ? "95vw" : "500px",
+          margin: isMobile ? "10px auto" : "15px auto"
+        }}>
+          <h3 style={{ fontSize: isMobile ? "16px" : "18px" }}>Top Settlements</h3>
+          <div className="results-container" style={{
+            maxHeight: isMobile ? "150px" : "200px",
+            minWidth: isMobile ? "300px" : "400px"
+          }}>
             {analysisResults.map((result, index) => (
               <div 
                 key={index} 
                 className={`result-row ${selectedSettlement?.rank === result.rank ? 'selected' : ''}`}
                 onClick={() => handleSettlementSelect(result)}
-                style={{ cursor: 'pointer' }}
+                style={{ 
+                  cursor: 'pointer',
+                  padding: isMobile ? "6px 8px" : "8px 12px",
+                  fontSize: isMobile ? "12px" : "14px"
+                }}
               >
                 <div className="rank-score">
-                  <span className="rank">#{result.rank}</span>
-                  <span className="score">{result.score.toFixed(1)}</span>
+                  <span className="rank" style={{ fontSize: isMobile ? "12px" : "14px" }}>#{result.rank}</span>
+                  <span className="score" style={{ fontSize: isMobile ? "14px" : "16px" }}>{result.score.toFixed(1)}</span>
                 </div>
-                <div className="resources-numbers">
+                <div className="resources-numbers" style={{
+                  gap: isMobile ? "4px" : "8px",
+                  marginLeft: isMobile ? "10px" : "15px"
+                }}>
                   {result.center.map((hex, hexIndex) => (
-                    <span key={hexIndex} className="resource-number">
+                    <span key={hexIndex} className="resource-number" style={{
+                      padding: isMobile ? "2px 6px" : "4px 8px",
+                      fontSize: isMobile ? "12px" : "14px"
+                    }}>
                       {RESOURCE_OPTIONS.find(r => r.name === hex.resource)?.emoji} {hex.number}
                     </span>
                   ))}
@@ -413,8 +495,8 @@ function App() {
       )}
 
       <div style={{ position: 'relative', display: 'inline-block' }}>
-        <HexGrid width={1000} height={800}>
-          <Layout size={{ x: 7, y: 7 }} flat={false} spacing={1.15} origin={{ x: 0, y: 0 }}>
+        <HexGrid width={gridDimensions.width} height={gridDimensions.height}>
+          <Layout size={gridDimensions.size} flat={false} spacing={gridDimensions.spacing} origin={{ x: 0, y: 0 }}>
             {hexes.map((hex) => {
               const isSelected = selectedSettlement?.hexCoords.some(h => h.q === hex.q && h.r === hex.r);
               
@@ -439,14 +521,14 @@ function App() {
                   onMouseLeave={(e) => handleMouseLeave(e, hex.resource)}
                 >
                   <text 
-                    x="0" y="0.15" textAnchor="middle" fontSize="0.2" 
+                    x="0" y="0.15" textAnchor="middle" fontSize={isMobile ? "0.15" : "0.2"} 
                     fill="#333" fontWeight="bold" stroke="none"
                   >
                     {hex.resource !== "none" ? hex.resource.toUpperCase() : ""}
                   </text>
                   {hex.resource !== "desert" && (
                     <text 
-                      x="0" y="0.5" textAnchor="middle" fontSize="3.0" 
+                      x="0" y="0.5" textAnchor="middle" fontSize={isMobile ? "2.2" : "3.0"} 
                       fontWeight="bold" fill={hex.number === 6 || hex.number === 8 ? "#8B0000" : "#000"} stroke="white" strokeWidth="0.02"
                       fontStyle="italic" 
 
@@ -465,7 +547,7 @@ function App() {
                   )}
                   {hex.resource === "desert" && (
                     <text 
-                      x="0" y="0.5" textAnchor="middle" fontSize="2.5" 
+                      x="0" y="0.5" textAnchor="middle" fontSize={isMobile ? "2.0" : "2.5"} 
                       fontWeight="bold" fill="#000" stroke="white" strokeWidth="0.02"
                     >
                       🌵
@@ -483,7 +565,7 @@ function App() {
         <div className="hex-input-overlay">
           <input
             type="number"
-            min="1"
+            min="2"
             max="12"
             placeholder="2-12"
             value={hexes.find(h => `${h.q},${h.r}` === editingNumber)?.number || ""}
@@ -496,22 +578,39 @@ function App() {
         </div>
       )}
 
-      <div className="resource-selector" style={{ marginTop: "5px" }}>
-        <h3>Select Resource:</h3>
-        <div className="resource-buttons">
+      <div className="resource-selector" style={{ 
+        marginTop: "5px",
+        padding: isMobile ? "8px" : "10px"
+      }}>
+        <h3 style={{ fontSize: isMobile ? "16px" : "18px" }}>Select Resource:</h3>
+        <div className="resource-buttons" style={{
+          gap: isMobile ? "6px" : "10px",
+          marginBottom: isMobile ? "10px" : "15px"
+        }}>
           {RESOURCE_OPTIONS.map((resource) => (
             <button
               key={resource.name}
               className={`resource-btn ${selectedResource === resource.name ? 'active' : ''}`}
               onClick={() => setSelectedResource(selectedResource === resource.name ? null : resource.name)}
-              style={buttonStyles.resource(selectedResource === resource.name, resource.color)}
+              style={{
+                ...buttonStyles.resource(selectedResource === resource.name, resource.color),
+                padding: isMobile ? "8px 12px" : "12px 20px",
+                fontSize: isMobile ? "12px" : "14px",
+                minWidth: isMobile ? "80px" : "100px"
+              }}
             >
-              <span style={{ fontSize: '18px', marginRight: '8px' }}>{resource.emoji}</span>
-              {resource.name.charAt(0).toUpperCase() + resource.name.slice(1)}
+              <span style={{ 
+                fontSize: isMobile ? '14px' : '18px', 
+                marginRight: isMobile ? '4px' : '8px' 
+              }}>{resource.emoji}</span>
+              {isMobile ? resource.name.charAt(0).toUpperCase() : resource.name.charAt(0).toUpperCase() + resource.name.slice(1)}
             </button>
           ))}
         </div>
-        <p className="paint-instructions">
+        <p className="paint-instructions" style={{
+          fontSize: isMobile ? "11px" : "14px",
+          lineHeight: isMobile ? "1.3" : "1.4"
+        }}>
           Selected: <strong>{selectedResource ? RESOURCE_OPTIONS.find(r => r.name === selectedResource)?.label : "None"}</strong> 
           - Select a resource to paint it on the board. Select again to reset your cursor.
         </p>
