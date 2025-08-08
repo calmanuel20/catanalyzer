@@ -101,7 +101,7 @@ function App() {
 
   const handleNumberChange = useCallback((q, r, value) => {
     const number = value === "" ? null : parseInt(value, 10);
-    if (value === "" || (number >= 2 && number <= 12 && number !== 7)) {
+    if (value === "" || (number >= 1 && number <= 12 && number !== 7)) {
       setHexes(prev =>
         prev.map(h => h.q === q && h.r === r ? { ...h, number } : h)
       );
@@ -483,7 +483,7 @@ function App() {
         <div className="hex-input-overlay">
           <input
             type="number"
-            min="2"
+            min="1"
             max="12"
             placeholder="2-12"
             value={hexes.find(h => `${h.q},${h.r}` === editingNumber)?.number || ""}
