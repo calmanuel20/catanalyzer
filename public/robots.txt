@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://catanalyzer.vercel.app/sitemap.xml
